@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScriptReel — AI Video Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#05050F;--gold:#FFB300;--gold2:#FFD54F;--cyan:#00E5FF;--text:#F0F0FF;--muted:#6060A0;--border:rgba(255,255,255,0.06);--s1:#0C0C1E;--s2:#12122A}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;text-align:center}
+.tagline{font-size:15px;color:var(--muted);text-align:center;margin-bottom:48px;letter-spacing:1px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:700px;box-shadow:0 40px 120px rgba(0,0,0,0.5)}
+.label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+textarea{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;line-height:1.8;resize:none;outline:none;transition:border-color 0.2s;min-height:160px}
+textarea:focus{border-color:var(--gold)}
+textarea::placeholder{color:var(--muted)}
+.btn{width:100%;margin-top:20px;padding:16px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#05050F;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;transition:all 0.2s}
+.btn:hover{filter:brightness(1.1);transform:scale(1.02)}
+.btn:disabled{background:var(--s2);color:var(--muted);cursor:not-allowed;transform:none}
+.status{margin-top:20px;padding:16px;border-radius:12px;text-align:center;display:none;font-size:14px}
+.status.loading{display:block;background:rgba(255,179,0,0.08);border:1px solid rgba(255,179,0,0.2);color:var(--gold2)}
+.status.success{display:block;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)}
+.status.error{display:block;background:rgba(255,50,50,0.08);border:1px solid rgba(255,50,50,0.2);color:#FF6B6B}
+.download-btn{width:100%;margin-top:12px;padding:14px;background:var(--cyan);color:#05050F;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;display:none;transition:all 0.2s}
+.download-btn:hover{filter:brightness(1.1)}
+.steps{display:flex;gap:8px;margin-top:24px;justify-content:center}
+.step{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background 0.5s}
+.step.active{background:var(--gold);animation:glow 1s ease-in-out infinite}
+.step.done{background:var(--gold)}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:0.5}}
+.by{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="logo">SCRIPTREEL</div>
+<div class="tagline">by AI Azhar Automation &nbsp;·&nbsp; Script to Video in Minutes</div>
+<div class="card">
+  <div class="label">Your Script</div>
+  <textarea id="script" placeholder="Write or paste your script here...&#10;&#10;ScriptReel will automatically generate voice, cinematic scenes, subtitles and background music." rows="8"></textarea>
+  <div class="steps">
+    <div class="step" id="s1"></div>
+    <div class="step" id="s2"></div>
+    <div class="step" id="s3"></div>
+    <div class="step" id="s4"></div>
+    <div class="step" id="s5"></div>
+  </div>
+  <button class="btn" id="genBtn" onclick="generate()">▶ &nbsp; GENERATE VIDEO</button>
+  <div class="status" id="status"></div>
+  <button class="download-btn" id="dlBtn" onclick="download()">⬇ &nbsp; DOWNLOAD VIDEO</button>
+</div>
+<div class="by">© 2026 AI Azhar Automation — All Rights Reserved</div>
+
+<script>
+const steps = ['s1','s2','s3','s4','s5'];
+const msgs = ['🎙️ Voice generating...','🎨 Creating scenes...','🎬 Assembling video...','💬 Adding subtitles...','🎵 Adding music...'];
+let stepInterval;
+
+function startSteps(){
+  let i = 0;
+  steps.forEach(s => document.getElementById(s).className = 'step');
+  stepInterval = setInterval(() => {
+    if(i > 0) document.getElementById(steps[i-1]).classList.replace('active','done');
+    if(i < steps.length){
+      document.getElementById(steps[i]).classList.add('active');
+      setStatus('loading', msgs[i]);
+      i++;
+    }
+  }, 8000);
+}
+
+function stopSteps(){
+  clearInterval(stepInterval);
+  steps.forEach(s => document.getElementById(s).className = 'step done');
+}
+
+function setStatus(type, msg){
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+async function generate(){
+  const script = document.getElementById('script').value.trim();
+  if(!script){ setStatus('error','⚠️ Script likhna zaroori hai!'); document.getElementById('status').style.display='block'; return; }
+  document.getElementById('genBtn').disabled = true;
+  document.getElementById('dlBtn').style.display = 'none';
+  startSteps();
+  try {
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({script})
+    });
+    const data = await res.json();
+    stopSteps();
+    if(data.success){
+      setStatus('success','🎉 Video ready hai! Download karo!');
+      document.getElementById('dlBtn').style.display = 'block';
+    } else {
+      setStatus('error','❌ Error: ' + data.error);
+    }
+  } catch(e) {
+    stopSteps();
+    setStatus('error','❌ Server error: ' + e.message);
+  }
+  document.getElementById('genBtn').disabled = false;
+}
+
+function download(){
+  window.location.href = '/download';
+}
+</script>
+</body>
+</html>
