@@ -1,0 +1,7 @@
+flask
+requests
+elevenlabs
+moviepy
+pillow
+python-dotenv
+gunicorn
